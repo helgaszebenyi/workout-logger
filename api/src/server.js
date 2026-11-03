@@ -74,6 +74,13 @@ app.delete('/api/workouts/:id', async (req, res) => {
   res.status(204).end();
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`API listening on port ${PORT}`);
 });
+
+// Keep idle connections open longer than typical load balancers do (AWS: 60s).
+// Otherwise a client or load balancer may reuse a connection the server just
+// closed, and the request fails with ECONNRESET (or a 502 from a load balancer).
+server.keepAliveTimeout = 65_000;
+// Must be higher than keepAliveTimeout, or Node can still close connections early.
+server.headersTimeout = 66_000;
