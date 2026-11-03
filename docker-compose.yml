@@ -1,0 +1,12 @@
+services:
+  web:
+    image: nginxinc/nginx-unprivileged:1.29-alpine
+    ports:
+      - "8080:8080"
+    environment:
+      API_UPSTREAM: http://host.docker.internal:3000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./web/public:/usr/share/nginx/html:ro
+      - ./web/docker/default.conf.template:/etc/nginx/templates/default.conf.template:ro

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workout Logger</title>
+  
+  <script src="config.js"></script>  
+  <script type="module" src="js/main.js"></script>
+  
+</head>
+<body>
+  <!-- Shown when signed out. -->
+  <main id="auth-view" hidden>
+    <h1>Workout Logger</h1>
+    <form id="auth-form">
+      <label>Email <input type="email" name="email" autocomplete="email" required /></label>
+      <label>Password <input type="password" name="password" autocomplete="current-password" minlength="6" required /></label>
+      <p id="auth-error" role="alert" hidden></p>
+      <button type="submit" data-action="sign-in">Sign in</button>
+      <button type="submit" data-action="sign-up">Create account</button>
+    </form>
+  </main>
+
+  <!-- Shown when signed in. -->
+  <main id="app-view" hidden>
+    <header>
+      <span id="user-email"></span>
+      <button id="sign-out" type="button">Sign out</button>
+    </header>
+    <section id="workouts"></section>
+  </main>
+</body>
+</html>
