@@ -2,3 +2,8 @@
 # Ignore everything inside the folder, except the placeholder that keeps it in git.
 secrets/*
 !secrets/.gitkeep
+
+# Safety net: catches a service-account key saved anywhere else by mistake,
+# under our name or Firebase's default download name.
+*service-account*.json
+*firebase-adminsdk*.json
