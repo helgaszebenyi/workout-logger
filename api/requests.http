@@ -44,6 +44,20 @@ Content-Type: application/json
   ]
 }
 
+### Create another workout (bodyweight and weighted sets)
+POST {{baseUrl}}/api/workouts
+Authorization: Bearer {{login.response.body.idToken}}
+Content-Type: application/json
+
+{
+  "title": "Leg day",
+  "date": "2026-11-01",
+  "exercises": [
+    { "name": "Squat", "sets": [{ "reps": 8, "weightKg": 60 }, { "reps": 8, "weightKg": 60 }, { "reps": 6, "weightKg": 70 }] },
+    { "name": "Lunges", "sets": [{ "reps": 12 }, { "reps": 12 }] }
+  ]
+}
+
 ### List my workouts
 GET {{baseUrl}}/api/workouts
 Authorization: Bearer {{login.response.body.idToken}}
