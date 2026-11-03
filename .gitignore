@@ -10,3 +10,7 @@ secrets/*
 
 # Dependencies: reinstalled with `npm install`, never committed.
 node_modules/
+
+# Local settings: real values, never committed. The .example template is.
+.env
+!.env.example
