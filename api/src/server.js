@@ -63,6 +63,25 @@ app.post('/api/workouts', async (req, res) => {
   res.status(201).json({ workout: { id: ref.id, ...data } });
 });
 
+// Replace a workout's content, keeps its id and original creation time
+app.put('/api/workouts/:id', async (req, res) => {
+  const ref = workoutsCollection(req.user.uid).doc(req.params.id);
+  const doc = await ref.get();
+  if (!doc.exists) {
+    return res.status(404).json({ error: 'Workout not found' });
+  }
+  const { title, date, exercises } = req.body;
+  const data = {
+    title,
+    date,
+    exercises,
+    createdAt: doc.data().createdAt,
+    updatedAt: new Date().toISOString(),
+  };
+  await ref.set(data);
+  res.json({ workout: { id: ref.id, ...data } });
+});
+
 // Delete workout by id
 app.delete('/api/workouts/:id', async (req, res) => {
   const ref = workoutsCollection(req.user.uid).doc(req.params.id);

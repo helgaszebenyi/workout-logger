@@ -43,4 +43,19 @@ export class ApiClient {
     const data = await this.#request('GET', '/workouts');
     return data.workouts;
   }
+
+    async createWorkout(workout) {
+    const data = await this.#request('POST', '/workouts', workout);
+    return data.workout;
+  }
+
+  async updateWorkout(id, workout) {
+    const data = await this.#request('PUT', `/workouts/${encodeURIComponent(id)}`, workout);
+    return data.workout;
+  }
+
+  async deleteWorkout(id) {
+    await this.#request('DELETE', `/workouts/${encodeURIComponent(id)}`);
+  }
 }
+

@@ -1,15 +1,23 @@
 import { el, formatDate } from '../dom.js';
 
-export function renderWorkoutList(root, workouts) {
+// Draws the list of workouts into `root`, replacing whatever was there
+// The view only reports Edit/Delete clicks through the callbacks
+export function renderWorkoutList(root, workouts, { onEdit, onDelete }) {
   if (workouts.length === 0) {
     root.replaceChildren(el('p', {}, 'No workouts yet. Log your first one!'));
     return;
   }
 
-  root.replaceChildren(...workouts.map(workoutCard));
+  root.replaceChildren(...workouts.map((workout) => workoutCard(workout, onEdit, onDelete)));
 }
 
-function workoutCard(workout) {
+function workoutCard(workout, onEdit, onDelete) {
+  const editButton = el('button', { type: 'button' }, 'Edit');
+  editButton.addEventListener('click', () => onEdit(workout));
+
+  const deleteButton = el('button', { type: 'button' }, 'Delete');
+  deleteButton.addEventListener('click', () => onDelete(workout));
+
   return el('article', { class: 'workout' },
     el('h3', {}, workout.title),
     el('p', { class: 'muted' }, formatDate(workout.date)),
@@ -18,18 +26,18 @@ function workoutCard(workout) {
         el('li', {}, `${exercise.name}: ${summariseSets(exercise.sets)}`),
       ),
     ),
+    editButton,
+    deleteButton,
   );
 }
 
-// How one set reads: "5 reps @ 80kg", "60s" (plank) or "20 reps". 
+// How one set reads: "5 reps @ 80kg", "60s" (plank) or "20 reps".
 function describeSet(set) {
   const amount = set.durationSec ? `${set.durationSec}s` : `${set.reps} reps`;
   return set.weightKg ? `${amount} @ ${set.weightKg}kg` : amount;
 }
 
-
-// Groups identical sets in a row, so
-
+// Groups identical sets in a row
 export function summariseSets(sets) {
   const groups = [];
   for (const set of sets) {

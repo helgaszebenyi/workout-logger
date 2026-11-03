@@ -7,7 +7,7 @@
   
   <script src="config.js"></script>  
   <script type="module" src="js/main.js"></script>
-  
+
 </head>
 <body>
   <!-- Shown when signed out. -->
@@ -28,7 +28,54 @@
       <span id="user-email"></span>
       <button id="sign-out" type="button">Sign out</button>
     </header>
+
+    <h2>Workouts</h2>
+    <button id="new-workout" type="button">+ New workout</button>
+    <p id="app-error" role="alert" hidden></p>
     <section id="workouts"></section>
   </main>
+
+  <!-- Popup form for creating and editing a workout. -->
+  <dialog id="workout-dialog">
+    <form id="workout-form">
+      <h2 id="workout-form-title">New workout</h2>
+      <label>Title <input name="title" maxlength="80" required placeholder="e.g. Push day" /></label>
+      <label>Date <input type="date" name="date" required /></label>
+
+      <fieldset>
+        <legend>Exercises</legend>
+        <div id="exercise-list"></div>
+        <button type="button" id="add-exercise">+ Add exercise</button>
+      </fieldset>
+
+      <p id="form-error" role="alert" hidden></p>
+      <button type="button" id="cancel-workout">Cancel</button>
+      <button type="submit">Save</button>
+    </form>
+  </dialog>
+
+  <!-- Templates: blueprints the JS copies for each exercise and set. -->
+  <template id="exercise-template">
+    <div class="exercise">
+      <input class="exercise-name" placeholder="Exercise name" maxlength="60" required />
+      <select class="exercise-type" aria-label="Measured by">
+        <option value="reps">Reps</option>
+        <option value="time">Time</option>
+      </select>
+      <button type="button" class="remove-exercise" aria-label="Remove exercise">✕</button>
+      <div class="sets"></div>
+      <button type="button" class="add-set">+ Set</button>
+    </div>
+  </template>
+
+  <template id="set-template">
+    <div class="set">
+      <span class="set-number"></span>
+      <input type="number" class="set-amount" min="1" max="10000" required aria-label="Reps or seconds" />
+      <span class="set-unit">reps</span>
+      <label>kg <input type="number" class="set-weight" min="0" max="1000" step="0.5" value="0" /></label>
+      <button type="button" class="remove-set" aria-label="Remove set">✕</button>
+    </div>
+  </template>
 </body>
 </html>
