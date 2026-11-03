@@ -1,9 +1,38 @@
-### Health check
-GET http://localhost:3000/healthz
+# Values in {{$dotenv ...}} are read from api/.env, so no secrets live in this file.
+@baseUrl = http://localhost:3000
+@apiKey = {{$dotenv FIREBASE_WEB_API_KEY}}
+
+### Health check (public, no token needed)
+GET {{baseUrl}}/healthz
+
+### Sign up the test user (run once; afterwards it answers EMAIL_EXISTS, which is fine)
+POST https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={{apiKey}}
+Content-Type: application/json
+
+{
+  "email": "{{$dotenv TEST_USER_EMAIL}}",
+  "password": "{{$dotenv TEST_USER_PASSWORD}}",
+  "returnSecureToken": true
+}
+
+### Sign in and get an ID token (valid for 1 hour; run again when requests start returning 401)
+# @name login
+POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={{apiKey}}
+Content-Type: application/json
+
+{
+  "email": "{{$dotenv TEST_USER_EMAIL}}",
+  "password": "{{$dotenv TEST_USER_PASSWORD}}",
+  "returnSecureToken": true
+}
+
+### Without a token: should return 401
+GET {{baseUrl}}/api/workouts
 
 ### Create a workout (reps-based and timed sets)
 # @name create
-POST http://localhost:3000/api/workouts
+POST {{baseUrl}}/api/workouts
+Authorization: Bearer {{login.response.body.idToken}}
 Content-Type: application/json
 
 {
@@ -15,11 +44,14 @@ Content-Type: application/json
   ]
 }
 
-### List workouts
-GET http://localhost:3000/api/workouts
+### List my workouts
+GET {{baseUrl}}/api/workouts
+Authorization: Bearer {{login.response.body.idToken}}
 
 ### Get the workout created above
-GET http://localhost:3000/api/workouts/{{create.response.body.workout.id}}
+GET {{baseUrl}}/api/workouts/{{create.response.body.workout.id}}
+Authorization: Bearer {{login.response.body.idToken}}
 
 ### Delete it
-DELETE http://localhost:3000/api/workouts/{{create.response.body.workout.id}}
+DELETE {{baseUrl}}/api/workouts/{{create.response.body.workout.id}}
+Authorization: Bearer {{login.response.body.idToken}}
