@@ -1,0 +1,291 @@
+:root {
+  --foam: #f2f4e8;          
+  --paper: #fffefa;         
+  --matcha-line: #d9e2c4;   
+  --matcha-soft: #e8eed8;   
+  --matcha: #6e8b3d;        
+  --matcha-deep: #3b4e2a;   
+  --ink: #2f3d24;          
+  --muted: #6f7a62;
+
+ 
+  --blossom: #f4b6c2;
+  --blossom-wash: #fcebef;
+  --blossom-ink: #b5476a;  
+
+  --font-display: 'Shippori Mincho B1', Georgia, serif;
+  --font-body: 'Zen Maru Gothic', system-ui, sans-serif;
+
+  /* Bigger panels get softer corners than small controls. */
+  --radius-panel: 28px;
+  --radius-card: 18px;
+  --radius-control: 12px;
+  --shadow: 0 1px 2px rgba(47, 61, 36, 0.06), 0 8px 24px -12px rgba(47, 61, 36, 0.18);
+
+  /* One blossom, and a blossom branch, drawn as SVG and used as decoration. */
+  --flower: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-20 -20 40 40'%3E%3Cg fill='%23f4b6c2'%3E%3Cellipse cx='0' cy='-9' rx='6' ry='9'/%3E%3Cellipse cx='0' cy='-9' rx='6' ry='9' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-9' rx='6' ry='9' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-9' rx='6' ry='9' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-9' rx='6' ry='9' transform='rotate(288)'/%3E%3C/g%3E%3Ccircle r='3.2' fill='%23b5476a'/%3E%3C/svg%3E");
+  --branch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 200'%3E%3Cdefs%3E%3Cg id='f'%3E%3Cg fill='%23f4b6c2'%3E%3Cellipse cx='0' cy='-9' rx='6' ry='9'/%3E%3Cellipse cx='0' cy='-9' rx='6' ry='9' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-9' rx='6' ry='9' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-9' rx='6' ry='9' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-9' rx='6' ry='9' transform='rotate(288)'/%3E%3C/g%3E%3Ccircle r='3.2' fill='%23b5476a'/%3E%3C/g%3E%3C/defs%3E%3Cpath d='M330 18 C250 30 200 70 150 110 S70 170 20 190' stroke='%23a07e66' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M205 70 C215 45 235 35 255 30' stroke='%23a07e66' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M120 130 C110 110 112 95 125 80' stroke='%23a07e66' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3Cuse href='%23f' transform='translate(255 30) scale(1.1)'/%3E%3Cuse href='%23f' transform='translate(210 62) rotate(20)'/%3E%3Cuse href='%23f' transform='translate(160 100) scale(1.3) rotate(10)'/%3E%3Cuse href='%23f' transform='translate(125 80) scale(.8)'/%3E%3Cuse href='%23f' transform='translate(80 150) scale(1.05) rotate(35)'/%3E%3Cuse href='%23f' transform='translate(290 22) scale(.7)'/%3E%3Ccircle cx='235' cy='52' r='4' fill='%23f4b6c2'/%3E%3Ccircle cx='105' cy='140' r='3.5' fill='%23f4b6c2'/%3E%3C/svg%3E");
+}
+
+/* ---------- Base ---------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--foam);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; line-height: 1.2; }
+p { margin: 0; }
+
+/* Make sure the "hidden" attribute always wins over display rules below. */
+[hidden] { display: none !important; }
+
+/* Visible keyboard focus everywhere. */
+:focus-visible { outline: 3px solid var(--blossom); outline-offset: 2px; }
+
+/* ---------- Layout helpers ---------- */
+
+.stack { display: flex; flex-direction: column; gap: 0.75rem; }
+.row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.row-end { justify-content: flex-end; }
+.grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; }
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }
+
+.layout { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+/* ---------- Brand and top bar ---------- */
+
+.brand {
+  font-size: 1.4rem; font-weight: 800; letter-spacing: -0.01em;
+  display: inline-flex; align-items: center; gap: 0.55rem; white-space: nowrap;
+}
+/* A single blossom in front of the name. */
+.brand::before {
+  content: ''; width: 1.25em; height: 1.25em; flex: none;
+  background: var(--flower) center / contain no-repeat;
+}
+
+.section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.section-title { font-size: 1.35rem; }
+
+/* ---------- App header band ---------- */
+
+/* Deep matcha band across the full width, holding the top bar and the "Workouts" row. */
+.app-header { background: var(--matcha-deep); color: var(--foam); }
+.app-header-inner { max-width: 760px; margin: 0 auto; padding: 1.1rem 1rem 1.75rem; }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; }
+.app-header .section-head { margin: 2rem 0 0; }
+.app-header .section-title { font-size: 1.8rem; }
+.app-header #user-email { color: #c7d1b3; }
+
+/* ---------- Forms ---------- */
+
+label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; font-weight: 500; color: var(--muted); }
+
+input, select, textarea {
+  font: inherit; color: var(--ink);
+  background: var(--paper); border: 1.5px solid var(--matcha-line);
+  border-radius: var(--radius-control); padding: 0.55rem 0.8rem; width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--matcha); box-shadow: 0 0 0 4px var(--matcha-soft);
+}
+input[type='number'] { width: 5.5rem; }
+select { width: auto; }
+
+fieldset { border: 1.5px dashed var(--matcha-line); border-radius: var(--radius-card); padding: 1rem; margin: 0; }
+legend { padding: 0 0.5rem; font-family: var(--font-display); font-weight: 700; color: var(--ink); }
+
+.error {
+  color: var(--blossom-ink); background: var(--blossom-wash);
+  border-radius: var(--radius-control); padding: 0.6rem 0.9rem; font-size: 0.9rem;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  font: inherit; font-weight: 700; font-size: 0.95rem; cursor: pointer;
+  padding: 0.55rem 1.15rem; border-radius: 999px; /* pill shape */
+  border: 1.5px solid var(--matcha-line); background: var(--paper); color: var(--ink);
+  transition: background 0.15s, border-color 0.15s, transform 0.05s;
+}
+.btn:hover { background: var(--matcha-soft); border-color: var(--matcha); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.6; cursor: wait; }
+
+.btn-primary { background: var(--matcha); border-color: var(--matcha); color: #fff; }
+.btn-primary:hover { background: var(--matcha-deep); border-color: var(--matcha-deep); }
+.btn-ghost { background: transparent; border-color: transparent; }
+.btn-ghost:hover { background: var(--matcha-soft); border-color: transparent; }
+.btn-danger { color: var(--blossom-ink); }
+.btn-danger:hover { background: var(--blossom-wash); }
+.btn-small { padding: 0.3rem 0.8rem; font-size: 0.85rem; align-self: flex-start; }
+.btn-icon { padding: 0.3rem 0.6rem; background: transparent; border-color: transparent; color: var(--muted); }
+.btn-icon:hover { background: var(--blossom-wash); color: var(--blossom-ink); border-color: transparent; }
+.btn-block { width: 100%; }
+
+/* Buttons on the dark header band. These must come after .btn:
+   with equal specificity, the rule further down the file wins. */
+.btn-on-dark { background: #2f3e20; border-color: rgba(242, 244, 232, 0.35); color: var(--foam); }
+.btn-on-dark:hover { background: rgba(242, 244, 232, 0.12); border-color: var(--foam); }
+.btn-blossom { background: var(--blossom); border-color: var(--blossom); color: var(--matcha-deep); }
+.btn-blossom:hover { background: #f7c8d1; border-color: #f7c8d1; }
+
+/* ---------- Loading and sign-in screens ---------- */
+
+.loading { min-height: 100vh; display: grid; place-items: center; color: var(--muted); }
+
+.auth { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem 1rem; position: relative; overflow: hidden; }
+/* The blossom branch reaches into the screen from the top-right corner. */
+.auth::before {
+  content: ''; position: absolute; top: -20px; right: -30px;
+  width: min(560px, 90vw); aspect-ratio: 320 / 200;
+  background: var(--branch) center / contain no-repeat;
+}
+.auth-card {
+  position: relative; width: 100%; max-width: 420px;
+  background: var(--paper); border-radius: var(--radius-panel);
+  padding: 2.5rem 2.25rem; box-shadow: var(--shadow);
+}
+.auth-card .brand { font-size: 2rem; margin-bottom: 0.35rem; }
+.auth-card > .muted { margin-bottom: 1.75rem; }
+
+.divider { display: flex; align-items: center; gap: 0.75rem; color: var(--muted); margin: 1.5rem 0; font-size: 0.85rem; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--matcha-line); }
+
+/* ---------- Workout list ---------- */
+
+/* Month headings between groups of workouts. */
+.month-heading {
+  font-family: var(--font-body); font-size: 0.95rem; font-weight: 700;
+  color: var(--muted); margin-top: 0.75rem;
+}
+.month-heading:first-child { margin-top: 0; }
+
+.workout {
+  display: grid; grid-template-columns: auto 1fr; gap: 1.1rem; align-items: start;
+  background: var(--paper); border-radius: var(--radius-card);
+  padding: 1.2rem 1.3rem; box-shadow: var(--shadow);
+}
+
+/* The date stamp: a small pink seal, a nod to Japanese hanko stamps. */
+.date-seal {
+  width: 3.6rem; height: 3.6rem; flex: none;
+  display: grid; place-content: center; text-align: center; line-height: 1;
+  border: 2px solid var(--blossom-ink); border-radius: 14px;
+  background: var(--blossom-wash); color: var(--blossom-ink);
+  transform: rotate(-3deg);
+}
+.seal-weekday { font-size: 0.7rem; font-weight: 700; }
+.seal-day { font-family: var(--font-display); font-size: 1.55rem; font-weight: 800; margin-top: 0.15rem; }
+
+.workout-body { min-width: 0; }
+.workout-head { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+.workout-head .row { flex-wrap: nowrap; gap: 0.25rem; }
+.workout-title { font-size: 1.3rem; }
+.workout-meta { display: flex; flex-wrap: wrap; gap: 0 0.9rem; margin-top: 0.15rem; }
+.workout-meta span { white-space: nowrap; }
+
+.workout-exercises {
+  margin: 0.9rem 0 0; padding: 0.8rem 0 0; list-style: none; display: grid; gap: 0.5rem;
+  border-top: 1.5px dotted var(--matcha-line);
+}
+.workout-exercises li { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.exercise-label { font-weight: 500; }
+
+/* Sets as small pills, wrapping onto a new line when there are many. */
+.set-pills { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.3rem; }
+.pill {
+  background: var(--matcha-soft); color: var(--ink);
+  border-radius: 999px; padding: 0.1rem 0.65rem;
+  font-size: 0.85rem; white-space: nowrap;
+}
+
+/* Empty list: a single blossom above the message. */
+.empty {
+  text-align: center; padding: 3rem 1rem; color: var(--muted);
+  border: 1.5px dashed var(--matcha-line); border-radius: var(--radius-card);
+}
+.empty::before {
+  content: ''; display: block; width: 2.5rem; height: 2.5rem; margin: 0 auto 0.75rem;
+  background: var(--flower) center / contain no-repeat;
+}
+
+/* Phones: smaller stamp, pills go under the exercise name. */
+@media (max-width: 640px) {
+  .workout { gap: 0.85rem; padding: 1rem; }
+  .date-seal { width: 3rem; height: 3rem; }
+  .seal-day { font-size: 1.3rem; }
+  .workout-exercises li { flex-direction: column; gap: 0.3rem; }
+  .set-pills { justify-content: flex-start; }
+}
+
+/* ---------- Workout popup ---------- */
+
+.dialog {
+  width: min(640px, calc(100% - 2rem)); max-height: 90vh; overflow: auto;
+  background: var(--paper); color: var(--ink);
+  border: none; border-radius: var(--radius-panel); padding: 2rem;
+  box-shadow: 0 30px 80px -20px rgba(47, 61, 36, 0.45);
+}
+.dialog h2 { font-size: 1.6rem; }
+.dialog::backdrop { background: rgba(47, 61, 36, 0.35); backdrop-filter: blur(3px); }
+/* A small motion that answers the user's click on "New workout" / "Edit". */
+.dialog[open] { animation: dialog-in 0.22s ease-out; }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+
+/* One exercise in the popup: a header row, then a small table of sets. */
+.exercise {
+  background: var(--foam); border-radius: var(--radius-card);
+  padding: 0.9rem 1rem 0.75rem; display: grid; gap: 0.5rem;
+}
+.exercise-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.exercise-name { flex: 1; min-width: 12rem; font-weight: 700; }
+.remove-exercise { margin-left: auto; }
+
+/* Sets line up like a table: Set | Reps or Seconds | kg | remove. */
+.set-grid {
+  display: grid; grid-template-columns: 2.25rem 1fr 1fr 2.25rem;
+  gap: 0.5rem; align-items: center;
+}
+.set-columns { font-size: 0.8rem; color: var(--muted); padding-top: 0.25rem; }
+.sets { display: grid; gap: 0.4rem; }
+.set input[type='number'] { width: 100%; padding: 0.5rem 0.65rem; }
+.add-set { justify-self: start; }
+
+/* Timed exercises (e.g. plank) have no weight column. */
+.exercise.is-timed .set-grid { grid-template-columns: 2.25rem 1fr 2.25rem; }
+.exercise.is-timed .weight-col { display: none; }
+
+/* The set number as a small blossom-pink circle. */
+.set-number {
+  width: 1.9rem; height: 1.9rem; display: grid; place-items: center;
+  border-radius: 50%; background: var(--blossom-wash); color: var(--blossom-ink);
+  font-weight: 700; font-size: 0.85rem;
+}
+
+/* ---------- Small screens and accessibility ---------- */
+
+@media (max-width: 640px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  #user-email { display: none; }
+  .brand { font-size: 1.2rem; }
+  .auth-card { padding: 2rem 1.5rem; }
+  .dialog { padding: 1.25rem; }
+  .app-header .section-title { font-size: 1.5rem; }
+  .app-header .section-head { margin-top: 1.5rem; }
+}
+
+/* Respect users who've asked their system for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

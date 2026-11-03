@@ -1,4 +1,3 @@
-// The popup form for creating and editing a workout.
 export class WorkoutForm {
   // onSubmit(data, id) is called on Save; id is null when creating.
   // If it throws, the popup stays open and shows the error.
@@ -15,11 +14,12 @@ export class WorkoutForm {
     this.form.addEventListener('submit', (event) => this.#handleSubmit(event));
 
     // One listener on the list handles every button inside it, including rows
+    // added later (event delegation), instead of one listener per button.
     this.exerciseList.addEventListener('click', (event) => this.#handleListClick(event));
-    // Switching Reps/Time updates the unit labels of that exercise's sets.
+    // Switching Reps/Time updates that exercise's column labels and hides kg for timed sets.
     this.exerciseList.addEventListener('change', (event) => {
       if (event.target.classList.contains('exercise-type')) {
-        updateSetLabels(event.target.closest('.exercise'));
+        updateExercise(event.target.closest('.exercise'));
       }
     });
   }
@@ -52,6 +52,7 @@ export class WorkoutForm {
   }
 
   // Adds a set row. Without a `set`, it copies the previous row's numbers,
+  // because lifters usually repeat the same reps and weight.
   #addSet(exerciseNode, set = null) {
     const setsRoot = exerciseNode.querySelector('.sets');
     const node = cloneTemplate('set-template');
@@ -66,7 +67,7 @@ export class WorkoutForm {
     }
 
     setsRoot.append(node);
-    updateSetLabels(exerciseNode);
+    updateExercise(exerciseNode);
   }
 
   #handleListClick(event) {
@@ -78,29 +79,29 @@ export class WorkoutForm {
       this.#addSet(exerciseNode);
     } else if (button.classList.contains('remove-set')) {
       button.closest('.set').remove();
-      updateSetLabels(exerciseNode);
+      updateExercise(exerciseNode);
     } else if (button.classList.contains('remove-exercise')) {
       exerciseNode.remove();
     }
   }
 
   // Turns the form into the API's shape:
-  // { title, date, exercises: [{ name, sets: [{ reps | durationSec, weightKg? }] }] }
+  // { title, date, exercises: [{ name, sets: [{ reps, weightKg? } | { durationSec }] }] }
   #readValues() {
     return {
       title: this.form.elements.title.value.trim(),
       date: this.form.elements.date.value,
       exercises: [...this.exerciseList.querySelectorAll('.exercise')].map((exerciseNode) => {
-        const timed = exerciseNode.querySelector('.exercise-type').value === 'time';
+        const timed = isTimed(exerciseNode);
         return {
           name: exerciseNode.querySelector('.exercise-name').value.trim(),
           sets: [...exerciseNode.querySelectorAll('.set')].map((setNode) => {
             const amount = Number(setNode.querySelector('.set-amount').value);
+            if (timed) return { durationSec: amount };
+
             const weightKg = Number(setNode.querySelector('.set-weight').value);
-            return {
-              ...(timed ? { durationSec: amount } : { reps: amount }),
-              ...(weightKg > 0 && { weightKg }), // leave weight out for bodyweight sets
-            };
+            // Leave weight out for bodyweight sets.
+            return weightKg > 0 ? { reps: amount, weightKg } : { reps: amount };
           }),
         };
       }),
@@ -139,12 +140,25 @@ function cloneTemplate(id) {
   return document.querySelector(`#${id}`).content.firstElementChild.cloneNode(true);
 }
 
-// Numbers the sets ("Set 1", "Set 2"...) and shows "reps" or "sec" next to each.
-function updateSetLabels(exerciseNode) {
-  const unit = exerciseNode.querySelector('.exercise-type').value === 'time' ? 'sec' : 'reps';
+function isTimed(exerciseNode) {
+  return exerciseNode.querySelector('.exercise-type').value === 'time';
+}
+
+// Brings one exercise's labels up to date:
+// - "Reps" or "Seconds" as the column heading,
+// - the is-timed class, which hides the kg column (CSS),
+// - set numbers 1, 2, 3... and a matching label for screen readers.
+function updateExercise(exerciseNode) {
+  const timed = isTimed(exerciseNode);
+  const unit = timed ? 'Seconds' : 'Reps';
+
+  exerciseNode.classList.toggle('is-timed', timed);
+  exerciseNode.querySelector('.amount-heading').textContent = unit;
+
   exerciseNode.querySelectorAll('.set').forEach((setNode, index) => {
-    setNode.querySelector('.set-number').textContent = `Set ${index + 1}`;
-    setNode.querySelector('.set-unit').textContent = unit;
+    setNode.querySelector('.set-number').textContent = index + 1;
+    setNode.querySelector('.set-amount').setAttribute('aria-label', `Set ${index + 1} ${unit.toLowerCase()}`);
+    setNode.querySelector('.set-weight').setAttribute('aria-label', `Set ${index + 1} weight in kg`);
   });
 }
 

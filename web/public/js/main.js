@@ -1,5 +1,3 @@
-// Entry point: connects auth, the API and the views, and switches
-// between the signed-out view and the signed-in view.
 import { AuthService, friendlyAuthError } from './auth.js';
 import { ApiClient } from './api.js';
 import { el } from './dom.js';
@@ -7,11 +5,12 @@ import { renderWorkoutList } from './views/workoutListView.js';
 import { WorkoutForm } from './views/workoutFormView.js';
 
 const auth = new AuthService(window.APP_CONFIG.firebase);
-// The API client asks auth for a fresh token before every request
+// The API client asks auth for a fresh token before every request.
 const api = new ApiClient(() => auth.getToken());
-// The popup form calls saveWorkout when the user clicks Save
+// The popup form calls saveWorkout when the user clicks Save.
 const workoutForm = new WorkoutForm(saveWorkout);
 
+const loadingView = document.querySelector('#loading');
 const authView = document.querySelector('#auth-view');
 const appView = document.querySelector('#app-view');
 const authForm = document.querySelector('#auth-form');
@@ -21,7 +20,12 @@ const workoutsSection = document.querySelector('#workouts');
 
 // ---- Signed out ----
 
-// Sign in or create an account, depending on which button was clicked
+function showAuthError(error) {
+  authError.textContent = friendlyAuthError(error);
+  authError.hidden = false;
+}
+
+// Sign in or create an account, depending on which button was clicked.
 authForm.addEventListener('submit', async (event) => {
   event.preventDefault(); // stop the browser from reloading the page
   const action = event.submitter.dataset.action;
@@ -35,8 +39,16 @@ authForm.addEventListener('submit', async (event) => {
       await auth.signIn(email.value, password.value);
     }
   } catch (error) {
-    authError.textContent = friendlyAuthError(error);
-    authError.hidden = false;
+    showAuthError(error);
+  }
+});
+
+document.querySelector('#google-sign-in').addEventListener('click', async () => {
+  authError.hidden = true;
+  try {
+    await auth.signInWithGoogle();
+  } catch (error) {
+    showAuthError(error);
   }
 });
 
@@ -45,7 +57,7 @@ authForm.addEventListener('submit', async (event) => {
 document.querySelector('#sign-out').addEventListener('click', () => auth.signOut());
 document.querySelector('#new-workout').addEventListener('click', () => workoutForm.open());
 
-// Loads the user's workouts from the API and draws them
+// Loads the user's workouts from the API and draws them.
 async function loadWorkouts() {
   try {
     const workouts = await api.listWorkouts();
@@ -55,12 +67,12 @@ async function loadWorkouts() {
     });
   } catch (error) {
     workoutsSection.replaceChildren(
-      el('p', { role: 'alert' }, `Couldn't load your workouts: ${error.message}`),
+      el('p', { class: 'error', role: 'alert' }, `Couldn't load your workouts: ${error.message}`),
     );
   }
 }
 
-// Called by the form on Save, errors are passed back so the form can show them
+// Called by the form on Save. Errors are passed back so the form can show them.
 async function saveWorkout(data, id) {
   if (id) {
     await api.updateWorkout(id, data);
@@ -85,14 +97,16 @@ async function deleteWorkout(workout) {
 
 // ---- Switching views ----
 
-// Show the right view whenever the user signs in or out.
+// Runs on page load (once Firebase knows if someone is signed in)
+// and every time the user signs in or out.
 auth.onChange((user) => {
+  loadingView.hidden = true;
   authView.hidden = Boolean(user);
   appView.hidden = !user;
 
   if (user) {
     document.querySelector('#user-email').textContent = user.email;
-    workoutsSection.replaceChildren(el('p', {}, 'Loading…'));
+    workoutsSection.replaceChildren(el('p', { class: 'muted' }, 'Loading…'));
     loadWorkouts();
   } else {
     authForm.reset();

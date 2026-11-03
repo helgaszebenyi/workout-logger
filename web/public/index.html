@@ -4,77 +4,123 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Workout Logger</title>
-  
-  <script src="config.js"></script>  
+  <meta name="description" content="Log your workouts and track your training." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>" />
+
+  <!-- Fonts: Shippori Mincho B1 (headings) and Zen Maru Gothic (body text). -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <script src="config.js"></script>
   <script type="module" src="js/main.js"></script>
 
 </head>
 <body>
-  <!-- Shown when signed out. -->
-  <main id="auth-view" hidden>
-    <h1>Workout Logger</h1>
-    <form id="auth-form">
-      <label>Email <input type="email" name="email" autocomplete="email" required /></label>
-      <label>Password <input type="password" name="password" autocomplete="current-password" minlength="6" required /></label>
-      <p id="auth-error" role="alert" hidden></p>
-      <button type="submit" data-action="sign-in">Sign in</button>
-      <button type="submit" data-action="sign-up">Create account</button>
-    </form>
+  <!-- Shown until Firebase knows whether the user is signed in. -->
+  <div id="loading" class="loading">Loading…</div>
+
+  <!-- Signed-out view -->
+  <main id="auth-view" class="auth" hidden>
+    <section class="auth-card">
+      <h1 class="brand">Workout Logger</h1>
+      <p class="muted">Log every session. Watch the numbers go up.</p>
+
+      <form id="auth-form" class="stack">
+        <label>Email <input type="email" name="email" autocomplete="email" required /></label>
+        <label>Password <input type="password" name="password" autocomplete="current-password" minlength="6" required /></label>
+        <p id="auth-error" class="error" role="alert" hidden></p>
+        <div class="row">
+          <button type="submit" data-action="sign-in" class="btn btn-primary">Sign in</button>
+          <button type="submit" data-action="sign-up" class="btn">Create account</button>
+        </div>
+      </form>
+
+      <div class="divider"><span>or</span></div>
+      <button id="google-sign-in" type="button" class="btn btn-block">Continue with Google</button>
+    </section>
   </main>
 
-  <!-- Shown when signed in. -->
-  <main id="app-view" hidden>
-    <header>
-      <span id="user-email"></span>
-      <button id="sign-out" type="button">Sign out</button>
+  <!-- Signed-in view -->
+  <div id="app-view" hidden>
+    <header class="app-header">
+      <div class="app-header-inner">
+        <div class="topbar">
+          <h1 class="brand">Workout Logger</h1>
+          <div class="row">
+            <span id="user-email" class="small"></span>
+            <button id="sign-out" type="button" class="btn btn-small btn-on-dark">Sign out</button>
+          </div>
+        </div>
+        <div class="section-head">
+          <h2 class="section-title">Workouts</h2>
+          <button id="new-workout" type="button" class="btn btn-blossom">+ New workout</button>
+        </div>
+      </div>
     </header>
 
-    <h2>Workouts</h2>
-    <button id="new-workout" type="button">+ New workout</button>
-    <p id="app-error" role="alert" hidden></p>
-    <section id="workouts"></section>
-  </main>
+    <main class="layout">
+      <p id="app-error" class="error" role="alert" hidden></p>
+      <section id="workouts" class="stack"></section>
+    </main>
+  </div>
 
   <!-- Popup form for creating and editing a workout. -->
-  <dialog id="workout-dialog">
-    <form id="workout-form">
+  <dialog id="workout-dialog" class="dialog">
+    <form id="workout-form" class="stack">
       <h2 id="workout-form-title">New workout</h2>
-      <label>Title <input name="title" maxlength="80" required placeholder="e.g. Push day" /></label>
-      <label>Date <input type="date" name="date" required /></label>
+
+      <div class="grid-2">
+        <label>Title <input name="title" maxlength="80" required placeholder="e.g. Push day" /></label>
+        <label>Date <input type="date" name="date" required /></label>
+      </div>
 
       <fieldset>
         <legend>Exercises</legend>
-        <div id="exercise-list"></div>
-        <button type="button" id="add-exercise">+ Add exercise</button>
+        <div id="exercise-list" class="stack"></div>
+        <button type="button" id="add-exercise" class="btn btn-ghost">+ Add exercise</button>
       </fieldset>
 
-      <p id="form-error" role="alert" hidden></p>
-      <button type="button" id="cancel-workout">Cancel</button>
-      <button type="submit">Save</button>
+      <p id="form-error" class="error" role="alert" hidden></p>
+      <div class="row row-end">
+        <button type="button" id="cancel-workout" class="btn btn-ghost">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
     </form>
   </dialog>
 
   <!-- Templates: blueprints the JS copies for each exercise and set. -->
   <template id="exercise-template">
     <div class="exercise">
-      <input class="exercise-name" placeholder="Exercise name" maxlength="60" required />
-      <select class="exercise-type" aria-label="Measured by">
-        <option value="reps">Reps</option>
-        <option value="time">Time</option>
-      </select>
-      <button type="button" class="remove-exercise" aria-label="Remove exercise">✕</button>
+      <div class="exercise-head">
+        <input class="exercise-name" placeholder="Exercise name" maxlength="60" required aria-label="Exercise name" />
+        <select class="exercise-type" aria-label="Measured by">
+          <option value="reps">Reps</option>
+          <option value="time">Time</option>
+        </select>
+        <button type="button" class="btn btn-icon remove-exercise" aria-label="Remove exercise">✕</button>
+      </div>
+
+      <!-- Column headings for the sets below. -->
+      <div class="set-grid set-columns" aria-hidden="true">
+        <span>Set</span>
+        <span class="amount-heading">Reps</span>
+        <span class="weight-col">kg</span>
+        <span></span>
+      </div>
       <div class="sets"></div>
-      <button type="button" class="add-set">+ Set</button>
+
+      <button type="button" class="btn btn-ghost btn-small add-set">+ Add set</button>
     </div>
   </template>
 
   <template id="set-template">
-    <div class="set">
+    <div class="set set-grid">
       <span class="set-number"></span>
-      <input type="number" class="set-amount" min="1" max="10000" required aria-label="Reps or seconds" />
-      <span class="set-unit">reps</span>
-      <label>kg <input type="number" class="set-weight" min="0" max="1000" step="0.5" value="0" /></label>
-      <button type="button" class="remove-set" aria-label="Remove set">✕</button>
+      <input type="number" class="set-amount" min="1" max="10000" required />
+      <input type="number" class="set-weight weight-col" min="0" max="1000" step="0.5" value="0" />
+      <button type="button" class="btn btn-icon remove-set" aria-label="Remove set">✕</button>
     </div>
   </template>
 </body>
