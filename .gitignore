@@ -7,3 +7,6 @@ secrets/*
 # under our name or Firebase's default download name.
 *service-account*.json
 *firebase-adminsdk*.json
+
+# Dependencies: reinstalled with `npm install`, never committed.
+node_modules/
