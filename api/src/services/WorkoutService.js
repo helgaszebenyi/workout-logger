@@ -20,7 +20,9 @@ export class WorkoutService {
   }
 
   // Validates the input (throws ValidationError) and saves it.
-  createWorkout(userId, input) {
+  // async, like every other method, so callers always get a promise back,
+  // even when validation fails.
+  async createWorkout(userId, input) {
     const workout = Workout.fromInput(input);
     return this.repository.create(userId, {
       ...workout.toStorage(),

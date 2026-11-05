@@ -1,8 +1,11 @@
+import { WorkoutRepository } from './WorkoutRepository.js';
+
 // All Firestore code for workouts lives here. The rest of the app calls these
 // methods and never touches Firestore directly (the Repository pattern).
 // Data layout: users/{userId}/workouts/{workoutId}
-export class FirestoreWorkoutRepository {
+export class FirestoreWorkoutRepository extends WorkoutRepository {
   constructor(db) {
+    super(); // a subclass must call the parent's constructor first
     this.db = db;
   }
 
