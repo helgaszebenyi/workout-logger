@@ -1,5 +1,6 @@
 import express from 'express';
 import { createRequireAuth } from './middleware/requireAuth.js';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { createHealthRouter } from './routes/healthRoutes.js';
 import { createWorkoutRouter } from './routes/workoutRoutes.js';
 
@@ -16,6 +17,10 @@ export function createApp({ workoutService, verifyToken }) {
   app.use(createHealthRouter());
   app.use('/api', createRequireAuth(verifyToken));
   app.use('/api/workouts', createWorkoutRouter(workoutService));
+
+  // Must come last: unknown routes, then the central error handler.
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   return app;
 }

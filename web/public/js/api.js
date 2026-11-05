@@ -1,9 +1,11 @@
-/** Error from the API, carrying the HTTP status code. */
+// Error from the API, carrying the HTTP status code and, for validation
+// errors, the list of problems.
 export class ApiError extends Error {
-  constructor(status, message) {
+  constructor(status, message, details = []) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.details = details;
   }
 }
 
@@ -34,7 +36,12 @@ export class ApiClient {
     // Parse defensively: a proxy error page (e.g. nginx 502) isn't JSON.
     const data = await response.json().catch(() => null);
     if (!response.ok) {
-      throw new ApiError(response.status, data?.error ?? `Request failed (${response.status})`);
+      const error = data?.error ?? {};
+      throw new ApiError(
+        response.status,
+        error.message ?? `Request failed (${response.status})`,
+        error.details ?? [],
+      );
     }
     return data;
   }
@@ -44,7 +51,7 @@ export class ApiClient {
     return data.workouts;
   }
 
-    async createWorkout(workout) {
+  async createWorkout(workout) {
     const data = await this.#request('POST', '/workouts', workout);
     return data.workout;
   }

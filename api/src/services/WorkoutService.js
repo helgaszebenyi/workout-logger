@@ -1,3 +1,6 @@
+import { Workout } from '../models/Workout.js';
+import { NotFoundError } from '../errors.js';
+
 // Business logic for workouts: what happens, independent of HTTP and storage.
 //   routes -> WorkoutService -> repository
 export class WorkoutService {
@@ -9,39 +12,35 @@ export class WorkoutService {
     return this.repository.findAllByUser(userId);
   }
 
-  // Returns null if the workout doesn't exist.
-  getWorkout(userId, id) {
-    return this.repository.findById(userId, id);
+  // Throws NotFoundError if the workout doesn't exist for this user.
+  async getWorkout(userId, id) {
+    const workout = await this.repository.findById(userId, id);
+    if (!workout) throw new NotFoundError('Workout');
+    return workout;
   }
 
+  // Validates the input (throws ValidationError) and saves it.
   createWorkout(userId, input) {
-    const { title, date, exercises } = input;
+    const workout = Workout.fromInput(input);
     return this.repository.create(userId, {
-      title,
-      date,
-      exercises,
+      ...workout.toStorage(),
       createdAt: new Date().toISOString(),
     });
   }
 
   // Replaces a workout's content but keeps its original creation time.
-  // Returns null if the workout doesn't exist.
   async updateWorkout(userId, id, input) {
-    const existing = await this.repository.findById(userId, id);
-    if (!existing) return null;
-
-    const { title, date, exercises } = input;
+    const workout = Workout.fromInput(input); // validate first: no database call needed if it's invalid
+    const existing = await this.getWorkout(userId, id); // throws NotFoundError if missing
     return this.repository.update(userId, id, {
-      title,
-      date,
-      exercises,
+      ...workout.toStorage(),
       createdAt: existing.createdAt,
       updatedAt: new Date().toISOString(),
     });
   }
 
-  // Returns false if the workout didn't exist.
-  deleteWorkout(userId, id) {
-    return this.repository.delete(userId, id);
+  async deleteWorkout(userId, id) {
+    const deleted = await this.repository.delete(userId, id);
+    if (!deleted) throw new NotFoundError('Workout');
   }
 }

@@ -123,7 +123,9 @@ export class WorkoutForm {
       await this.onSubmit(data, this.editingId);
       this.dialog.close();
     } catch (error) {
-      this.#showError(`Couldn't save: ${error.message}`);
+      // A validation error from the API lists every problem; show them all.
+      const problems = error.details?.length ? error.details.join('; ') : error.message;
+      this.#showError(`Couldn't save: ${problems}`);
     } finally {
       saveButton.disabled = false;
     }

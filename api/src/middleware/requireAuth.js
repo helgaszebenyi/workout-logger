@@ -1,14 +1,16 @@
+import { UnauthorizedError } from '../errors.js';
+
 // Creates middleware that requires a valid Firebase ID token in the
 // Authorization header ("Bearer <token>"). On success, the user's id is
 // available as req.user.uid. The user id only ever comes from the verified
 // token, never from the request body.
-
+//
 // verifyToken is passed in rather than imported, so tests can use a fake one.
 export function createRequireAuth(verifyToken) {
   return async function requireAuth(req, res, next) {
     const [scheme, token] = (req.get('Authorization') ?? '').split(' ');
     if (scheme !== 'Bearer' || !token) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return next(new UnauthorizedError());
     }
     try {
       const decoded = await verifyToken(token);
@@ -16,7 +18,7 @@ export function createRequireAuth(verifyToken) {
       next();
     } catch {
       // Don't reveal why verification failed (expired, forged, ...).
-      res.status(401).json({ error: 'Invalid or expired token' });
+      next(new UnauthorizedError('Invalid or expired token'));
     }
   };
 }
