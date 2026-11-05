@@ -1,0 +1,3 @@
+# Always use LF line endings for text files, on every OS.
+# The app runs in Linux containers, where CRLF can break scripts.
+* text=auto eol=lf
