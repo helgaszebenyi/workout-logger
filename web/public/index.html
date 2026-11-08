@@ -13,9 +13,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
 
+  <!-- Settings for this environment (Firebase config). -->
   <script src="config.js"></script>
+  <!-- type="module" lets the scripts use import/export. -->
   <script type="module" src="js/main.js"></script>
-
 </head>
 <body>
   <!-- Shown until Firebase knows whether the user is signed in. -->
@@ -44,6 +45,7 @@
 
   <!-- Signed-in view -->
   <div id="app-view" hidden>
+    <!-- Deep matcha band: top bar, the "Workouts" row and the overview numbers. -->
     <header class="app-header">
       <div class="app-header-inner">
         <div class="topbar">
@@ -57,10 +59,18 @@
           <h2 class="section-title">Workouts</h2>
           <button id="new-workout" type="button" class="btn btn-blossom">+ New workout</button>
         </div>
+        <!-- Overview numbers, filled in by statsView.js. -->
+        <div id="stats" class="stats" aria-label="Training overview"></div>
       </div>
     </header>
 
     <main class="layout">
+      <!-- Personal records; hidden until there is at least one. -->
+      <section id="records-section" class="records-section" aria-labelledby="records-heading" hidden>
+        <h2 id="records-heading" class="records-heading">Personal records</h2>
+        <ul id="records" class="records"></ul>
+      </section>
+
       <p id="app-error" class="error" role="alert" hidden></p>
       <section id="workouts" class="stack"></section>
     </main>

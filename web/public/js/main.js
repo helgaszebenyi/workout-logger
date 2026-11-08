@@ -1,7 +1,10 @@
+// Entry point: connects auth, the API and the views, and switches
+// between the loading screen, the signed-out view and the signed-in view.
 import { AuthService, friendlyAuthError } from './auth.js';
 import { ApiClient } from './api.js';
 import { el } from './dom.js';
 import { renderWorkoutList } from './views/workoutListView.js';
+import { renderStats, renderRecords } from './views/statsView.js';
 import { WorkoutForm } from './views/workoutFormView.js';
 
 const auth = new AuthService(window.APP_CONFIG.firebase);
@@ -17,6 +20,9 @@ const authForm = document.querySelector('#auth-form');
 const authError = document.querySelector('#auth-error');
 const appError = document.querySelector('#app-error');
 const workoutsSection = document.querySelector('#workouts');
+const statsRoot = document.querySelector('#stats');
+const recordsSection = document.querySelector('#records-section');
+const recordsList = document.querySelector('#records');
 
 // ---- Signed out ----
 
@@ -57,14 +63,17 @@ document.querySelector('#google-sign-in').addEventListener('click', async () => 
 document.querySelector('#sign-out').addEventListener('click', () => auth.signOut());
 document.querySelector('#new-workout').addEventListener('click', () => workoutForm.open());
 
-// Loads the user's workouts from the API and draws them.
-async function loadWorkouts() {
+// Loads the workouts and the stats from the API (both at the same time)
+// and redraws the list, the overview numbers and the personal records.
+async function refresh() {
   try {
-    const workouts = await api.listWorkouts();
+    const [workouts, stats] = await Promise.all([api.listWorkouts(), api.getStats()]);
     renderWorkoutList(workoutsSection, workouts, {
       onEdit: (workout) => workoutForm.open(workout),
       onDelete: deleteWorkout,
     });
+    renderStats(statsRoot, stats);
+    renderRecords(recordsSection, recordsList, stats.personalRecords);
   } catch (error) {
     workoutsSection.replaceChildren(
       el('p', { class: 'error', role: 'alert' }, `Couldn't load your workouts: ${error.message}`),
@@ -79,7 +88,7 @@ async function saveWorkout(data, id) {
   } else {
     await api.createWorkout(data);
   }
-  await loadWorkouts(); // redraw from the server, the single source of truth
+  await refresh(); // redraw from the server, the single source of truth
 }
 
 async function deleteWorkout(workout) {
@@ -88,7 +97,7 @@ async function deleteWorkout(workout) {
   appError.hidden = true;
   try {
     await api.deleteWorkout(workout.id);
-    await loadWorkouts();
+    await refresh();
   } catch (error) {
     appError.textContent = `Couldn't delete the workout: ${error.message}`;
     appError.hidden = false;
@@ -107,9 +116,12 @@ auth.onChange((user) => {
   if (user) {
     document.querySelector('#user-email').textContent = user.email;
     workoutsSection.replaceChildren(el('p', { class: 'muted' }, 'Loading…'));
-    loadWorkouts();
+    refresh();
   } else {
+    // Don't leave the last user's data on screen.
     authForm.reset();
-    workoutsSection.replaceChildren(); // don't leave the last user's data on screen
+    workoutsSection.replaceChildren();
+    statsRoot.replaceChildren();
+    recordsSection.hidden = true;
   }
 });

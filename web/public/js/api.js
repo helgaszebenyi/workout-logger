@@ -1,3 +1,7 @@
+// Client for the Workout Logger API.
+// Adds the signed-in user's token to every request and turns error
+// responses into ApiError, so the rest of the frontend never deals with fetch.
+
 // Error from the API, carrying the HTTP status code and, for validation
 // errors, the list of problems.
 export class ApiError extends Error {
@@ -10,16 +14,14 @@ export class ApiError extends Error {
 }
 
 export class ApiClient {
-  /**
-   * @param {() => Promise<string>} getToken  Returns the current user's ID token.
-   * @param {string} baseUrl  Relative: nginx forwards /api to the API.
-   */
+  // getToken: returns the current user's ID token.
+  // baseUrl: relative, because nginx forwards /api to the API.
   constructor(getToken, baseUrl = '/api') {
     this.getToken = getToken;
     this.baseUrl = baseUrl;
   }
 
-  // Sends one request; private (#) because only this class should call it. 
+  // Sends one request; private (#) because only this class should call it.
   async #request(method, path, body) {
     const token = await this.getToken();
     const response = await fetch(`${this.baseUrl}${path}`, {
@@ -51,6 +53,11 @@ export class ApiClient {
     return data.workouts;
   }
 
+  async getStats() {
+    const data = await this.#request('GET', '/workouts/stats');
+    return data.stats;
+  }
+
   async createWorkout(workout) {
     const data = await this.#request('POST', '/workouts', workout);
     return data.workout;
@@ -65,4 +72,3 @@ export class ApiClient {
     await this.#request('DELETE', `/workouts/${encodeURIComponent(id)}`);
   }
 }
-
