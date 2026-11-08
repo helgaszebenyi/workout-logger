@@ -48,6 +48,25 @@ export class Exercise {
     return new Exercise(name, sets);
   }
 
+  // Total weight moved: reps × weight, summed over all sets.
+  // Bodyweight and timed sets add nothing.
+  get volumeKg() {
+    return this.sets.reduce((sum, set) => sum + (set.reps ?? 0) * (set.weightKg ?? 0), 0);
+  }
+
+  // This exercise's best performance, used for personal records:
+  // the heaviest weight if any set has one, otherwise the longest time,
+  // otherwise the most reps. Returns { kind: 'weight' | 'time' | 'reps', value }.
+  get best() {
+    const weights = this.sets.map((set) => set.weightKg ?? 0);
+    if (Math.max(...weights) > 0) return { kind: 'weight', value: Math.max(...weights) };
+
+    const durations = this.sets.map((set) => set.durationSec ?? 0);
+    if (Math.max(...durations) > 0) return { kind: 'time', value: Math.max(...durations) };
+
+    return { kind: 'reps', value: Math.max(...this.sets.map((set) => set.reps ?? 0)) };
+  }
+
   // Plain-object shape, used for storage and for JSON responses.
   toJSON() {
     return { name: this.name, sets: this.sets };
@@ -60,6 +79,24 @@ export class Workout {
     this.title = title;
     this.date = date;
     this.exercises = exercises;
+  }
+
+  get totalSets() {
+    return this.exercises.reduce((sum, exercise) => sum + exercise.sets.length, 0);
+  }
+
+  get totalVolumeKg() {
+    return this.exercises.reduce((sum, exercise) => sum + exercise.volumeKg, 0);
+  }
+
+  // Rebuilds a Workout from data already in the database. That data was
+  // validated when it was saved, so it's trusted and not checked again.
+  static fromStored(data) {
+    return new Workout({
+      title: data.title,
+      date: data.date,
+      exercises: data.exercises.map((exercise) => new Exercise(exercise.name, exercise.sets)),
+    });
   }
 
   // Builds a Workout from untrusted request data.

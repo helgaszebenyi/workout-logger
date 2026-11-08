@@ -58,6 +58,58 @@ describe('WorkoutService', () => {
   });
 });
 
+describe('WorkoutService.getStats', () => {
+  // A fixed "today", so "last 30 days" gives the same answer every time.
+  const today = new Date('2026-11-05T12:00:00Z');
+  let service;
+
+  beforeEach(() => {
+    service = new WorkoutService(new InMemoryWorkoutRepository(), { now: () => today });
+  });
+
+  it('returns zeros and no records for a new user', async () => {
+    assert.deepEqual(await service.getStats('nobody'), {
+      totalWorkouts: 0,
+      workoutsLast30Days: 0,
+      totalSets: 0,
+      totalVolumeKg: 0,
+      personalRecords: [],
+    });
+  });
+
+  it('adds up totals and finds personal records', async () => {
+    await service.createWorkout('alice', input({
+      date: '2026-11-01',
+      exercises: [
+        { name: 'Bench press', sets: [{ reps: 5, weightKg: 80 }, { reps: 5, weightKg: 80 }] },
+        { name: 'Plank', sets: [{ durationSec: 60 }] },
+      ],
+    }));
+    await service.createWorkout('alice', input({
+      date: '2026-11-04',
+      exercises: [{ name: 'bench press', sets: [{ reps: 3, weightKg: 90 }] }],
+    }));
+    // More than 30 days ago: counts in the totals, not in "last 30 days".
+    await service.createWorkout('alice', input({
+      date: '2026-09-01',
+      exercises: [{ name: 'Plank', sets: [{ durationSec: 90 }] }],
+    }));
+    // Another user's workout must not count.
+    await service.createWorkout('bob', input());
+
+    const stats = await service.getStats('alice');
+
+    assert.equal(stats.totalWorkouts, 3);
+    assert.equal(stats.workoutsLast30Days, 2);
+    assert.equal(stats.totalSets, 5);
+    assert.equal(stats.totalVolumeKg, 5 * 80 * 2 + 3 * 90);
+    assert.deepEqual(stats.personalRecords, [
+      { exercise: 'bench press', kind: 'weight', value: 90, date: '2026-11-04' },
+      { exercise: 'Plank', kind: 'time', value: 90, date: '2026-09-01' },
+    ]);
+  });
+});
+
 describe('WorkoutRepository', () => {
   it('cannot be created directly, because it is abstract', () => {
     assert.throws(() => new WorkoutRepository(), TypeError);

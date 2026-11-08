@@ -25,16 +25,30 @@ const validWorkout = {
 
 describe('Workout API', () => {
   let app;
+  let databaseUp;
 
   beforeEach(() => {
+    databaseUp = true;
     app = createApp({
       workoutService: new WorkoutService(new InMemoryWorkoutRepository()),
       verifyToken: fakeVerifyToken,
+      checkReady: async () => {
+        if (!databaseUp) throw new Error('database unreachable');
+      },
     });
   });
 
   it('GET /healthz works without a token', async () => {
     await request(app).get('/healthz').expect(200, { status: 'ok' });
+  });
+
+  it('GET /readyz is ready while the database is up', async () => {
+    await request(app).get('/readyz').expect(200, { status: 'ready' });
+  });
+
+  it('GET /readyz returns 503 when the database is down', async () => {
+    databaseUp = false;
+    await request(app).get('/readyz').expect(503);
   });
 
   it('rejects requests without a token', async () => {
@@ -85,6 +99,15 @@ describe('Workout API', () => {
       .send('{ "title": "Push day", }')
       .expect(400);
     assert.equal(res.body.error.code, 'INVALID_JSON');
+  });
+
+  it('GET /api/workouts/stats returns totals and records', async () => {
+    await request(app).post('/api/workouts').set(as('alice')).send(validWorkout).expect(201);
+
+    const res = await request(app).get('/api/workouts/stats').set(as('alice')).expect(200);
+    assert.equal(res.body.stats.totalWorkouts, 1);
+    assert.equal(res.body.stats.totalVolumeKg, 700);
+    assert.equal(res.body.stats.personalRecords[0].exercise, 'Deadlift');
   });
 
   it('returns a JSON 404 for unknown routes', async () => {

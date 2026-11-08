@@ -12,6 +12,12 @@ export function createWorkoutRouter(service) {
     res.json({ workouts });
   });
 
+  // Registered before '/:id', otherwise "stats" would be treated as a workout id.
+  router.get('/stats', async (req, res) => {
+    const stats = await service.getStats(req.user.uid);
+    res.json({ stats });
+  });
+
   router.get('/:id', async (req, res) => {
     const workout = await service.getWorkout(req.user.uid, req.params.id);
     res.json({ workout });

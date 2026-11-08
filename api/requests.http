@@ -5,6 +5,9 @@
 ### Health check (public, no token needed)
 GET {{baseUrl}}/healthz
 
+### Readiness check (public): is the database reachable?
+GET {{baseUrl}}/readyz
+
 ### Sign up the test user (run once; afterwards it answers EMAIL_EXISTS, which is fine)
 POST https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={{apiKey}}
 Content-Type: application/json
@@ -60,6 +63,10 @@ Content-Type: application/json
 
 ### List my workouts
 GET {{baseUrl}}/api/workouts
+Authorization: Bearer {{login.response.body.idToken}}
+
+### My stats and personal records
+GET {{baseUrl}}/api/workouts/stats
 Authorization: Bearer {{login.response.body.idToken}}
 
 ### Get the workout created above

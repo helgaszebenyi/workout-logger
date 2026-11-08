@@ -89,3 +89,28 @@ describe('Workout.fromInput', () => {
     assert.deepEqual(problemsFor([]), ['Body must be a JSON object']);
   });
 });
+
+describe('Workout calculations', () => {
+  it('counts sets and volume, ignoring bodyweight and timed sets', () => {
+    const workout = Workout.fromInput(validInput());
+    // Bench: 5 × 80 + 5 × 0, plank: timed
+    assert.equal(workout.totalSets, 3);
+    assert.equal(workout.totalVolumeKg, 400);
+  });
+
+  it('picks the best set of an exercise', () => {
+    const workout = Workout.fromInput({
+      ...validInput(),
+      exercises: [
+        { name: 'Bench press', sets: [{ reps: 5, weightKg: 80 }, { reps: 3, weightKg: 90 }] },
+        { name: 'Plank', sets: [{ durationSec: 60 }, { durationSec: 75 }] },
+        { name: 'Push-ups', sets: [{ reps: 20 }, { reps: 25 }] },
+      ],
+    });
+    assert.deepEqual(workout.exercises.map((exercise) => exercise.best), [
+      { kind: 'weight', value: 90 },
+      { kind: 'time', value: 75 },
+      { kind: 'reps', value: 25 },
+    ]);
+  });
+});

@@ -11,11 +11,16 @@ import { FirestoreWorkoutRepository } from './repositories/FirestoreWorkoutRepos
 // GOOGLE_APPLICATION_CREDENTIALS points to.
 const firebaseApp = initializeApp({ credential: applicationDefault() });
 const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
 
-const repository = new FirestoreWorkoutRepository(getFirestore(firebaseApp));
 const app = createApp({
-  workoutService: new WorkoutService(repository),
+  workoutService: new WorkoutService(new FirestoreWorkoutRepository(db)),
   verifyToken: (token) => auth.verifyIdToken(token),
+  // A cheap Firestore call: it fails fast if the database is unreachable
+  // or the credentials are wrong.
+  checkReady: async () => {
+    await db.listCollections();
+  },
 });
 
 // Port comes from the environment so Docker/Kubernetes can choose it.
