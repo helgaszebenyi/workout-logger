@@ -1,3 +1,12 @@
+// Small DOM and formatting helpers shared by the views.
+//
+// User data is always inserted as text (never as HTML), so a workout titled
+// "<script>..." is shown literally instead of being run. This prevents
+// cross-site scripting (XSS).
+
+// Creates an element with attributes and children.
+// Example: el('p', { class: 'muted' }, 'Hello')
+// Falsy children (null, false, '') are skipped, which makes optional parts easy.
 export function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -10,11 +19,24 @@ export function el(tag, attrs = {}, ...children) {
   return node;
 }
 
-// "2026-11-03" -> "Tue, 3 Nov 2026" in the user's language settings
-export function formatDate(isoDate) {
+// "3 sets", "1 set": the word gets an "s" unless the count is exactly 1.
+export function plural(count, word) {
+  return `${count} ${word}${count === 1 ? '' : 's'}`;
+}
+
+// Seconds as a readable time: 45 -> "45 s", 80 -> "1:20", 10000 -> "2:46:40".
+export function formatDuration(totalSeconds) {
+  if (totalSeconds < 60) return `${totalSeconds} s`;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = String(totalSeconds % 60).padStart(2, '0');
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, '0')}:${seconds}`
+    : `${minutes}:${seconds}`;
+}
+
+// Builds a Date from "YYYY-MM-DD" as a local calendar date (not UTC midnight).
+export function parseDate(isoDate) {
   const [year, month, day] = isoDate.split('-').map(Number);
-  // Built from parts so it's read as a local calendar date, not UTC midnight.
-  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
-    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-  });
+  return new Date(year, month - 1, day);
 }

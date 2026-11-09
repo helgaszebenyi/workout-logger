@@ -43,37 +43,40 @@
     </section>
   </main>
 
-  <!-- Signed-in view -->
-  <div id="app-view" hidden>
-    <!-- Deep matcha band: top bar, the "Workouts" row and the overview numbers. -->
-    <header class="app-header">
-      <div class="app-header-inner">
-        <div class="topbar">
-          <h1 class="brand">Workout Logger</h1>
-          <div class="row">
-            <span id="user-email" class="small"></span>
-            <button id="sign-out" type="button" class="btn btn-small btn-on-dark">Sign out</button>
-          </div>
-        </div>
-        <div class="section-head">
-          <h2 class="section-title">Workouts</h2>
-          <button id="new-workout" type="button" class="btn btn-blossom">+ New workout</button>
-        </div>
-        <!-- Overview numbers, filled in by statsView.js. -->
-        <div id="stats" class="stats" aria-label="Training overview"></div>
+  <!-- Signed-in view: every part of the page sits in its own box. -->
+  <div id="app-view" class="page" hidden>
+    <!-- Top bar: brand, email and sign out. -->
+    <header class="topbar panel">
+      <h1 class="brand">Workout Logger</h1>
+      <div class="row">
+        <span id="user-email" class="muted small"></span>
+        <button id="sign-out" type="button" class="btn btn-small">Sign out</button>
       </div>
     </header>
 
-    <main class="layout">
+    <!-- The top box: "Workouts", the New workout button and the overview numbers. -->
+    <section class="hero" aria-labelledby="workouts-heading">
+      <div class="section-head">
+        <h2 id="workouts-heading" class="section-title">Workouts</h2>
+        <button id="new-workout" type="button" class="btn btn-blossom">+ New workout</button>
+      </div>
+      <!-- Overview numbers, filled in by statsView.js. -->
+      <div id="stats" class="stats" aria-label="Training overview"></div>
+    </section>
+
+    <!-- Two columns on wide screens: workouts on the left, records on the right. -->
+    <div class="content">
       <!-- Personal records; hidden until there is at least one. -->
-      <section id="records-section" class="records-section" aria-labelledby="records-heading" hidden>
+      <aside id="records-section" class="records-panel panel" aria-labelledby="records-heading" hidden>
         <h2 id="records-heading" class="records-heading">Personal records</h2>
         <ul id="records" class="records"></ul>
-      </section>
+      </aside>
 
-      <p id="app-error" class="error" role="alert" hidden></p>
-      <section id="workouts" class="stack"></section>
-    </main>
+      <main class="workouts-column">
+        <p id="app-error" class="error" role="alert" hidden></p>
+        <section id="workouts" class="stack"></section>
+      </main>
+    </div>
   </div>
 
   <!-- Popup form for creating and editing a workout. -->
