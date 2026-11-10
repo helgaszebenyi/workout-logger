@@ -1,0 +1,5 @@
+# Never built into the image: your local config.js (it's generated at start-up)
+# and the Docker files themselves.
+public/config.js
+Dockerfile
+.dockerignore

@@ -1,17 +1,45 @@
+# nginx serves the frontend and forwards /api to the API, so the browser sees
+# one address for both and CORS is never needed.
+# ${API_UPSTREAM} is filled in from an environment variable when the
+# container starts; nginx's own $variables are left untouched.
 server {
     listen 8080;
     root /usr/share/nginx/html;
     index index.html;
 
-    # API requests are passed on to the API server.
+    # Don't reveal the nginx version in headers and error pages.
+    server_tokens off;
+
+    # Basic security headers on every response.
+    # Gotcha: an add_header inside a location block discards these, so the
+    # locations below never use add_header.
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header X-Frame-Options "DENY" always;
+
+    # Health check for this container (Docker, Kubernetes).
+    location = /healthz {
+        access_log off;
+        default_type application/json;
+        return 200 '{"status":"ok"}';
+    }
+
+    # Generated at start-up by 40-generate-config.sh; never cached.
+    location = /config.js {
+        alias /tmp/runtime-config/config.js;
+        default_type application/javascript;
+        expires -1;
+    }
+
+    # API requests are passed on to the API container.
     location /api/ {
         proxy_pass ${API_UPSTREAM};
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    # Everything else is a file of the frontend.
+    # Everything else is a file of the frontend; missing files are a real 404.
     location / {
-        try_files $uri $uri/ /index.html;
+        try_files $uri $uri/ =404;
     }
 }

@@ -36,3 +36,15 @@ const server = app.listen(PORT, () => {
 server.keepAliveTimeout = 65_000;
 // Must be higher than keepAliveTimeout, or Node can still close connections early.
 server.headersTimeout = 66_000;
+
+// Graceful shutdown. Docker and Kubernetes send SIGTERM before stopping a
+// container (on every deploy, for example). Stop accepting new connections,
+// let the requests already running finish, then exit. If something hangs,
+// force the exit after 10 seconds.
+function shutdown(signal) {
+  console.log(`${signal} received, shutting down...`);
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(1), 10_000).unref();
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
