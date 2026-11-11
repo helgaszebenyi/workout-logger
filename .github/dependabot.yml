@@ -1,0 +1,29 @@
+# Dependabot opens pull requests when dependencies have updates,
+# including security fixes. CI runs on each one, so you can see
+# whether the update breaks anything before merging it.
+version: 2
+updates:
+  # npm packages of the API. Small updates are grouped into one pull request.
+  - package-ecosystem: npm
+    directory: /api
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  # Base images in the Dockerfiles (node, nginx).
+  - package-ecosystem: docker
+    directory: /api
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /web
+    schedule:
+      interval: weekly
+
+  # The actions used in .github/workflows.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
