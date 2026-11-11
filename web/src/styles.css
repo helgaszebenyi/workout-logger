@@ -311,10 +311,6 @@ legend { padding: 0 0.5rem; font-family: var(--font-display); font-weight: 700; 
 .set input[type='number'] { width: 100%; padding: 0.5rem 0.65rem; }
 .add-set { justify-self: start; }
 
-/* Timed exercises (e.g. plank) have no weight column. */
-.exercise.is-timed .set-grid { grid-template-columns: 2.25rem 1fr 2.25rem; }
-.exercise.is-timed .weight-col { display: none; }
-
 /* The set number as a small blossom-pink circle. */
 .set-number {
   width: 1.9rem; height: 1.9rem; display: grid; place-items: center;
