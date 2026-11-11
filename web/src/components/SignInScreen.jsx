@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { auth } from '../services.js';
 import { friendlyAuthError } from '../lib/auth.js';
+import BlossomBranch from './BlossomBranch.jsx';
 
 // The signed-out screen: email/password sign-in, account creation and Google.
 // After a successful sign-in, Firebase notifies useAuth and App switches screens,
@@ -33,6 +34,7 @@ export default function SignInScreen() {
   return (
     <main className="auth">
       <section className="auth-card">
+        <BlossomBranch />
         <h1 className="brand">Workout Logger</h1>
         <p className="muted">Log every session. Watch the numbers go up.</p>
 
