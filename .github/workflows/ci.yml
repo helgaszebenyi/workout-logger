@@ -1,9 +1,13 @@
-# Continuous integration: GitHub runs this on every push and pull request.
+# ---------------------------------------------------------------------------
+# Continuous integration
 #
-#   1. Check the API: install, lint, test, security audit.
-#   2. Build both Docker images (only if step 1 passed).
-#      On pushes to main, also publish them to GitHub Container Registry
-#      (ghcr.io), tagged with the commit and "latest".
+#   Every push / pull request:  lint + test the API, lint + build the React
+#                               frontend, then build both Docker images.
+#   Push to main only:          also publish the images to GitHub Container
+#                               Registry (ghcr.io), tagged with the commit SHA
+#                               and "latest". The Kubernetes project pulls
+#                               these images.
+# ---------------------------------------------------------------------------
 name: CI
 
 on:
@@ -11,67 +15,73 @@ on:
     branches: [main]
   pull_request:
 
-# If a newer commit arrives on the same branch, cancel the older run.
+# Cancel an older run on the same branch when a newer commit arrives.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Least privilege: jobs can only read the code unless they ask for more.
+# Least privilege by default; the publish job asks for more below.
 permissions:
   contents: read
 
 jobs:
-  api:
-    name: Lint, test and audit the API
+  test-api:
+    name: Lint & test API
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: api
     steps:
-      - name: Check out the code
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: api/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      # Fail on high/critical vulnerabilities in the packages that ship.
+      - run: npm audit --omit=dev --audit-level=high
 
-      - name: Lint
-        run: npm run lint
+  # Runs at the same time as test-api (neither needs the other).
+  test-web:
+    name: Lint & build web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
 
-      - name: Test
-        run: npm test
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
-      # Fails only for high or critical issues in what ships to production;
-      # moderate issues in dev tools don't block the build.
-      - name: Security audit
-        run: npm audit --omit=dev --audit-level=high
+      - run: npm ci
+      - run: npm run lint
+      # Proves the React app compiles (a broken import fails here).
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=high
 
-  images:
-    name: Build the ${{ matrix.service }} image
-    needs: api
+  build-images:
+    name: Build ${{ matrix.service }} image
+    needs: [test-api, test-web]   # only build images if both checks pass
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # allowed to publish to ghcr.io
+      packages: write   # needed to push to ghcr.io
     strategy:
       matrix:
         service: [api, web]
     steps:
-      - name: Check out the code
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
 
-      # Image names must be lowercase, but GitHub usernames don't have to be.
-      - name: Work out the image name
-        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/workout-logger-${{ matrix.service }}" >> "$GITHUB_ENV"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@v4
 
       - name: Log in to GitHub Container Registry
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -81,23 +91,25 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Tags: sha-<commit> (always) and latest (on main).
-      - name: Work out the image tags
+      # Works out image name and tags, e.g.
+      #   ghcr.io/<you>/workout-logger-api:sha-1a2b3c4 and :latest
+      # (it also lowercases the owner name, which ghcr.io requires).
+      - name: Image metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.IMAGE }}
+          images: ghcr.io/${{ github.repository_owner }}/workout-logger-${{ matrix.service }}
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build (and publish on main)
+      - name: Build (and push on main)
         uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.service }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Reuse layers from earlier runs, so builds after the first are fast.
+          # Reuse layers from previous runs to speed up builds.
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
