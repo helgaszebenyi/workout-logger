@@ -1,6 +1,6 @@
 # Recipe for the frontend image: nginx with the site files built in.
 # The unprivileged variant runs as a normal user, on port 8080.
-FROM nginxinc/nginx-unprivileged:1.29-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 
 # Default API address: the "api" service in docker compose.
 # Overridden per environment (Kubernetes sets its own).
