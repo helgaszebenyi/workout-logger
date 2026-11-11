@@ -31,6 +31,13 @@ server {
         expires -1;
     }
 
+    # The built JavaScript and CSS. Vite puts a content hash in every file
+    # name (index-Br0G0YvJ.js), so a changed file always gets a new name.
+    # That makes it safe to let browsers cache these for a year.
+    location /assets/ {
+        expires 1y;
+    }
+
     # API requests are passed on to the API container.
     location /api/ {
         proxy_pass ${API_UPSTREAM};
