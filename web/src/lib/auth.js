@@ -1,4 +1,7 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+// Wrapper around Firebase Authentication.
+// The rest of the app uses this class, never the Firebase SDK directly,
+// so all Firebase-specific code lives in one file.
+import { initializeApp } from 'firebase/app';
 import {
   getAuth,
   onAuthStateChanged,
@@ -7,7 +10,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
-} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+} from 'firebase/auth';
 
 // Firebase error codes turned into messages a user can act on.
 const FRIENDLY_ERRORS = {
@@ -31,8 +34,9 @@ export class AuthService {
   }
 
   // Calls callback(user or null) now, and every time the user signs in or out.
+  // Returns a function that stops listening (React calls it on clean-up).
   onChange(callback) {
-    onAuthStateChanged(this.auth, callback);
+    return onAuthStateChanged(this.auth, callback);
   }
 
   signIn(email, password) {
