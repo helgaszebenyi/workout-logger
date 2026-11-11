@@ -5,7 +5,7 @@
 # npm cache, so it's smaller and has less that could be attacked.
 
 # ---- Stage 1: install production dependencies ----
-FROM node:22-alpine AS deps
+FROM node:26-alpine AS deps
 WORKDIR /app
 # Copy only the package files first. Docker caches each step, so this slow
 # npm step is reused until the dependencies actually change, not on every
@@ -14,7 +14,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 # ---- Stage 2: the image that actually runs ----
-FROM node:22-alpine
+FROM node:26-alpine
 ENV NODE_ENV=production \
     PORT=8080
 WORKDIR /app
