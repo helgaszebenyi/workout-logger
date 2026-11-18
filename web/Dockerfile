@@ -4,7 +4,7 @@
 #      source code end up in it, so it stays small.
 
 # ---- Stage 1: build the React app ----
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 # Package files first, so this slow step is cached until dependencies change.
 COPY package.json package-lock.json ./
